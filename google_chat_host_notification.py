@@ -14,7 +14,7 @@ def format_google_chat_message(host_name, host_state, host_output):
 
     # Formats the message with Nagios variables
     # Google Chat cards use <b> for bold, <i> for italics, and <a href="..."> for links
-    formatted_message = f"{emoji} <a href='http://{host_name}'>{host_name}</a> is <b>{host_state}</b><br><i>{host_output}</i>"
+    formatted_message = f"{emoji} <a href='http://{host_name}'>{host_name}</a> is <b>{host_state}</b>\n<i>{host_output}</i>"
 
     return formatted_message
 
