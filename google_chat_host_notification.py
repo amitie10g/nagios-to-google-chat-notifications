@@ -13,7 +13,8 @@ def format_google_chat_message(host_name, host_state, host_output):
     emoji = get_emoji_for_state(host_state)
 
     # Formats the message with Nagios variables
-    formatted_message = f"{emoji} <a href='http://{host_name}'>{host_name}</a> is <b>{host_state}</b>\n<I>{host_output}"
+    # Google Chat cards use <b> for bold, <i> for italics, and <a href="..."> for links
+    formatted_message = f"{emoji} <a href='http://{host_name}'>{host_name}</a> is <b>{host_state}</b><br><i>{host_output}</i>"
 
     return formatted_message
 
@@ -23,8 +24,21 @@ def send_google_chat_message(webhook_url, host_name, host_state, host_output, pr
     # Formats the message
     message_text = format_google_chat_message(host_name, host_state, host_output)
 
-    message = {'text': message_text}
-    payload = {'cards': [{'sections': [{'widgets': [{'textParagraph': {'text': message_text}}]}]}]}
+    # Formatted using the cardsV2 structure required by modern Google Chat APIs
+    payload = {
+        'cardsV2': [{
+            'cardId': 'nagios_host_alert',
+            'card': {
+                'sections': [{
+                    'widgets': [{
+                        'textParagraph': {
+                            'text': message_text
+                        }
+                    }]
+                }]
+            }
+        }]
+    }
 
     # Configures the proxy if provided
     proxies = {'http': proxy, 'https': proxy} if proxy else {}
@@ -35,6 +49,7 @@ def send_google_chat_message(webhook_url, host_name, host_state, host_output, pr
             headers=headers,
             data=json.dumps(payload),
             proxies=proxies,  # Use the proxy
+            timeout=10        # Prevents the script from hanging indefinitely
         )
 
         response.raise_for_status()  # Raise an exception for HTTP error codes
